@@ -2138,7 +2138,7 @@ function writeField(field, value, isMacro) {
 	if (!isMacro) Zotero.write("{");
 	// url field is preserved, for use with \href and \url
 	// Other fields (DOI?) may need similar treatment
-	if (!isMacro && !(field == "url" || field == "doi" || field == "file" || field == "lccn" )) {
+	if (!isMacro && !(field == "url" || field == "doi" || field == "file" || field == "lccn" || field == "related" )) {
 		// I hope these are all the escape characters!
 		value = value.replace(/[|\<\>\~\^\\\{\}]/g, mapEscape).replace(/([\#\$\%\&\_])/g, "\\$1");
 	    
@@ -2481,9 +2481,18 @@ function doExport() {
 		
 		if(item.extra) {
 			//writeField("addendum", item.extra);
-		        if (/^Reprinted/.test(item.extra) || /^Original work/.test(item.extra)) {
-		            writeField("origdate", item.extra.match(/\d{4}/));
-		        }
+		    if (/^Reprint/.test(item.extra) || /^Repub/.test(item.extra) || /^Transl/.test(item.extra)) {
+			if (/\d{4}\/\d{4}/.test(item.extra)) {
+			    writeField("origdate", item.extra.match(/\d{4}\/\d{4}/));
+			} else if (/\d{4}/.test(item.extra)) {
+			    writeField("origdate", item.extra.match(/\d{4}/));
+			}
+			array = item.extra.split(" ")
+			writeField("relatedtype", array[0].toLowerCase()+array[1].toLowerCase());
+			if (/\(/.test(item.extra) || /\_/.test(item.extra)) {
+			    writeField("related", item.extra.match(/\(Related to\s+(.*?)\)+/i)[1]); 
+			}
+		    }
 		}
 		
 		if(item.tags && item.tags.length) {
